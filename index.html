@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Sistem Bahan Ajar UT</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet"
+          href="assets/style.css">
+
+    <!-- Vue 2 -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+</head>
+
+<body>
+
+<div id="app">
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+
+        <h1>Sistem Bahan Ajar UT</h1>
+
+        <div class="menu">
+
+            <button
+                @click="tab='stok'"
+                :class="{ active: tab === 'stok' }">
+
+                Stok Bahan Ajar
+
+            </button>
+
+            <button
+                @click="tab='tracking'"
+                :class="{ active: tab === 'tracking' }">
+
+                Tracking DO
+
+            </button>
+
+        </div>
+
+    </nav>
+
+    <!-- HALAMAN STOK -->
+    <ba-stock-table
+        v-if="tab==='stok'"
+        :stok="stok"
+        :upbjj-list="upbjjList"
+        :kategori-list="kategoriList">
+    </ba-stock-table>
+
+    <!-- HALAMAN TRACKING -->
+    <ba-do-tracking
+        v-if="tab==='tracking'"
+        :tracking="tracking"
+        :paket="paket">
+    </ba-do-tracking>
+
+</div>
+
+<!-- TEMPLATE -->
+<script type="text/x-template"
+        id="tpl-do-tracking">
+
+<div class="page-section">
+
+    <h2>
+        🚚 Tracking Delivery Order
+    </h2>
+    <!-- FORM TAMBAH DO -->
+<div class="form-box">
+
+    <h3>
+        ➕ Tambah Delivery Order
+    </h3>
+
+    <!-- NIM -->
+    <input
+        type="text"
+        v-model="form.nim"
+        placeholder="Masukkan NIM">
+
+    <!-- NAMA -->
+    <input
+        type="text"
+        v-model="form.nama"
+        placeholder="Masukkan Nama">
+
+    <!-- EKSPEDISI -->
+    <select v-model="form.ekspedisi">
+
+        <option value="">
+            Pilih Ekspedisi
+        </option>
+
+        <option value="JNE Regular">
+            JNE Regular
+        </option>
+
+        <option value="JNE Express">
+            JNE Express
+        </option>
+
+    </select>
+
+    <!-- PAKET -->
+    <select v-model="form.paket">
+
+        <option value="">
+            Pilih Paket
+        </option>
+
+        <option
+            v-for="item in paket"
+            :key="item.kode"
+            :value="item.kode">
+
+            {{ item.kode }} - {{ item.nama }}
+
+        </option>
+
+    </select>
+
+    <!-- DETAIL PAKET -->
+    <div
+        v-if="getSelectedPaket()"
+        class="paket-detail">
+
+        <p>
+            <b>Isi Paket:</b>
+        </p>
+
+        <ul>
+
+            <li
+                v-for="isi in getSelectedPaket().isi">
+
+                {{ isi }}
+
+            </li>
+
+        </ul>
+
+        <p>
+            <b>Total:</b>
+            Rp {{ getSelectedPaket().harga.toLocaleString() }}
+        </p>
+
+    </div>
+
+    <!-- BUTTON -->
+    <button @click="tambahDO">
+
+        Simpan DO
+
+    </button>
+
+</div>
+
+    <!-- SEARCH -->
+    <div class="search-box">
+
+        <input
+            type="text"
+            v-model="search"
+            placeholder="Cari Nomor DO / NIM"
+            @keyup.enter="cariData"
+            @keyup.esc="resetCari">
+
+        <button @click="cariData">
+            Cari
+        </button>
+
+        <button @click="resetCari">
+            Reset
+        </button>
+
+    </div>
+
+    <!-- HASIL -->
+    <div
+        v-if="hasilTracking"
+        class="tracking-card">
+
+        <h3>
+            {{ hasilTracking.no_do }}
+        </h3>
+
+        <p>
+            <b>NIM:</b>
+            {{ hasilTracking.nim }}
+        </p>
+
+        <p>
+            <b>Nama:</b>
+            {{ hasilTracking.nama }}
+        </p>
+
+        <p>
+            <b>Status:</b>
+            {{ hasilTracking.status }}
+        </p>
+
+        <p>
+            <b>Ekspedisi:</b>
+            {{ hasilTracking.ekspedisi }}
+        </p>
+
+        <p>
+            <b>Tanggal Kirim:</b>
+            {{ hasilTracking.tanggalKirim }}
+        </p>
+
+    </div>
+
+    <!-- TIDAK ADA -->
+    <div v-else-if="sudahCari">
+
+        Data tidak ditemukan.
+
+    </div>
+
+</div>
+
+</script>
+
+<script type="text/x-template"
+        id="tpl-stock-table">
+
+<div>
+
+    <h2>
+        📦 Stok Bahan Ajar
+    </h2>
+
+    <table border="1">
+
+        <tr>
+            <th>Kode</th>
+            <th>Judul</th>
+            <th>Qty</th>
+        </tr>
+
+        <tr
+            v-for="item in stok"
+            :key="item.kode">
+
+            <td>{{ item.kode }}</td>
+
+            <td>{{ item.judul }}</td>
+
+            <td>{{ item.qty }}</td>
+
+        </tr>
+
+    </table>
+
+</div>
+
+
+</script>
+
+<script type="text/x-template"
+        id="tpl-status-badge">
+
+<span>
+
+    <!-- KOSONG -->
+    <span
+        v-if="qty == 0"
+        class="status-danger">
+
+        🔴 Kosong
+
+    </span>
+
+    <!-- MENIPIS -->
+    <span
+        v-else-if="qty < safety"
+        class="status-warning">
+
+        🟠 Menipis
+
+    </span>
+
+    <!-- AMAN -->
+    <span
+        v-else
+        class="status-safe">
+
+        🟢 Aman
+
+    </span>
+
+</span>
+
+</script>
+
+<!-- COMPONENT -->
+<script src="js/components/status-badge.js"></script>
+
+<script src="js/components/stock-table.js"></script>
+
+<script src="js/components/do-tracking.js"></script>
+
+<!-- ROOT APP -->
+<script src="js/app.js"></script>
+
+</body>
+</html>

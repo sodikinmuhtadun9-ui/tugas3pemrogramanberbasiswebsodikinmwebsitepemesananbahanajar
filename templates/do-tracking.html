@@ -1,0 +1,74 @@
+<template id="tpl-do-tracking">
+
+    <div class="page-section">
+
+        <h2>
+            🚚 Tracking Delivery Order
+        </h2>
+
+        <!-- SEARCH -->
+        <div class="search-box">
+
+            <input
+                type="text"
+                v-model="search"
+                placeholder="Cari Nomor DO / NIM"
+                @keyup.enter="cariData"
+                @keyup.esc="resetCari">
+
+            <button @click="cariData">
+                Cari
+            </button>
+
+            <button @click="resetCari">
+                Reset
+            </button>
+
+        </div>
+
+        <!-- HASIL -->
+        <div
+            v-if="hasilTracking"
+            class="tracking-card">
+
+            <h3>
+                {{ hasilTracking.no_do }}
+            </h3>
+
+            <p>
+                <b>NIM:</b>
+                {{ hasilTracking.nim }}
+            </p>
+
+            <p>
+                <b>Nama:</b>
+                {{ hasilTracking.nama }}
+            </p>
+
+            <p>
+                <b>Status:</b>
+                {{ hasilTracking.status }}
+            </p>
+
+            <p>
+                <b>Ekspedisi:</b>
+                {{ hasilTracking.ekspedisi }}
+            </p>
+
+            <p>
+                <b>Tanggal Kirim:</b>
+                {{ hasilTracking.tanggalKirim }}
+            </p>
+
+        </div>
+
+        <!-- TIDAK ADA -->
+        <div v-else-if="sudahCari">
+
+            Data tidak ditemukan.
+
+        </div>
+
+    </div>
+
+</template>
